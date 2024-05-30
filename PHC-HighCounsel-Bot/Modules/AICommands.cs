@@ -1,12 +1,7 @@
 ﻿namespace PHC_HighCounsel_Bot.Modules;
 
-public class AICommands(MessageHandler handler, OllamaApiClient ollamaApiClient, ConversationContext conversationContext, ILogger<AICommands> logger) : InteractionModuleBase<SocketInteractionContext>
+public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> logger) : ModuleBase
 {
-    private readonly MessageHandler _handler = handler;
-    private readonly OllamaApiClient _ollamaApiClient = ollamaApiClient;
-    private readonly ILogger<AICommands> _logger = logger;
-    private ConversationContext _conversationContext = conversationContext;
-
     [SlashCommand("phcai", "Ask the PHC AI Anything!", false, RunMode.Async)]
     public async Task AIPromptRequestAsync(string prompt)
     {
@@ -19,9 +14,9 @@ public class AICommands(MessageHandler handler, OllamaApiClient ollamaApiClient,
         var rules = GetRules();
         await DeferAsync();
         var response = new StringBuilder();
-        _logger.LogInformation("Prompt: {prompt}{rules}", prompt, rules);
+        logger.LogInformation("Prompt: {prompt}{rules}", prompt, rules);
         response.AppendFormat("Prompt: {0}", prompt).AppendLine();
-        await _ollamaApiClient.StreamCompletion(prompt + rules, _conversationContext, stream => response.Append(stream.Response));
+        await ollamaApiClient.StreamCompletion(prompt + rules, null!, stream => response.Append(stream.Response));
         Console.WriteLine(response.ToString());
         await ModifyOriginalResponseAsync(o => o.Content = response.ToString());
     }
@@ -31,7 +26,7 @@ public class AICommands(MessageHandler handler, OllamaApiClient ollamaApiClient,
     {
         var response = new StringBuilder();
         await DeferAsync();
-        var models = await _ollamaApiClient.ListLocalModels();
+        var models = await ollamaApiClient.ListLocalModels();
         await ModifyOriginalResponseAsync(o => o.Content = string.Join(',', models.Select(o => o.Name)));
     }
 
