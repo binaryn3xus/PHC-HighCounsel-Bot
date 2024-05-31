@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Discord;
+using Microsoft.Extensions.Options;
 
 namespace PHC_HighCounsel_Bot.Modules;
 
@@ -16,9 +17,8 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
         var models = string.Join(", ", localModels.Select(m => m.Name));
 
         var description = new StringBuilder()
-            .AppendLine(app.Description)
-            .AppendLine()
-            .AppendLine("Models: " + models)
+            .AppendLine(app.Description).AppendLine()
+            .AppendLine("AI Models: " + models)
             .ToString();
 
         var embed = new EmbedBuilder()
@@ -40,16 +40,17 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
         await FollowupAsync(embed: embed, components: components);
     }
 
-//#if DEBUG
-//    [SlashCommand("clean-channel", "Warning: This will delete all messages in this channel!", false, RunMode.Async)]
-//    [RequireRole("Admins")]
-//    public async Task ChannelCleanup(bool areYouSure = false)
-//    {
-//        if (areYouSure)
-//        {
-//            //await DeleteAllMessagesInChannel(message.Channel);
-//        }
-//    }
-//#endif
+#if DEBUG
+    [SlashCommand("clean-channel", "Warning: This will delete all messages in this channel!", false, RunMode.Async)]
+    [RequireRole(1192224618740711444)]
+    public async Task ChannelCleanup(bool areYouSure = false)
+    {
+        if (areYouSure)
+        {
+            var messages = await Context.Channel.GetMessagesAsync(Context.Message, Direction.Before, amount).FlattenAsync();
+            await (Context.Channel as ITextChannel).DeleteMessagesAsync(filteredMessages);
+        }
+    }
+#endif
 
 }

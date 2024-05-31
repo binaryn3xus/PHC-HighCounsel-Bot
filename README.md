@@ -17,6 +17,7 @@ If Ollama is run as a systemd service, environment variables should be set using
     ```ini
     [Service]
     Environment="OLLAMA_HOST=0.0.0.0"
+    Environment="CUDA_VISIBLE_DEVICES=0"
     ```
 
 3. Save and exit.
