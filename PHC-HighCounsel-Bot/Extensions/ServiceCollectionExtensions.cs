@@ -1,3 +1,5 @@
+using Fergun.Interactive;
+
 namespace PHC_HighCounsel_Bot.Extensions;
 
 /// <summary>
