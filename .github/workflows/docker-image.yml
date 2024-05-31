@@ -25,6 +25,7 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v2
       with:
-        context: .
+        context: ./PHC-HighCounsel-Bot
+        file: ./PHC-HighCounsel-Bot/Dockerfile
         push: true
         tags: ghcr.io/${{ github.repository_owner }}/your-repo-name:latest
