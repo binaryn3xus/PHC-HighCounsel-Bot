@@ -1,6 +1,4 @@
-﻿
-
-Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+﻿Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Error)

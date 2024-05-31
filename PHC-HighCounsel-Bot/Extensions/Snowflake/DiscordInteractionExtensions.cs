@@ -1,5 +1,3 @@
-using PHC_HighCounsel_Bot.Common.EmbedStyles;
-
 namespace PHC_HighCounsel_Bot.Extensions.Snowflake;
 
 /// <summary>

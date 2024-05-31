@@ -1,7 +1,4 @@
-﻿using Discord;
-using Microsoft.Extensions.Options;
-
-namespace PHC_HighCounsel_Bot.Modules;
+﻿namespace PHC_HighCounsel_Bot.Modules;
 
 public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollamaApiClient) : ModuleBase
 {
@@ -39,18 +36,5 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
 
         await FollowupAsync(embed: embed, components: components);
     }
-
-#if DEBUG
-    [SlashCommand("clean-channel", "Warning: This will delete all messages in this channel!", false, RunMode.Async)]
-    [RequireRole(1192224618740711444)]
-    public async Task ChannelCleanup(bool areYouSure = false)
-    {
-        if (areYouSure)
-        {
-            var messages = await Context.Channel.GetMessagesAsync(Context.Message, Direction.Before, amount).FlattenAsync();
-            await (Context.Channel as ITextChannel).DeleteMessagesAsync(filteredMessages);
-        }
-    }
-#endif
 
 }

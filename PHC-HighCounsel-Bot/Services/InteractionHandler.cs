@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Options;
-using PHC_HighCounsel_Bot.Extensions.Snowflake;
 
 namespace PHC_HighCounsel_Bot.Services;
 

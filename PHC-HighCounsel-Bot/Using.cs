@@ -18,3 +18,8 @@ global using Serilog;
 global using Serilog.Events;
 global using System.Reflection;
 global using System.Text;
+global using Microsoft.Extensions.Options;
+global using PHC_HighCounsel_Bot.Extensions.Snowflake;
+global using Fergun.Interactive;
+global using PHC_HighCounsel_Bot.Common.EmbedStyles;
+global using System.ComponentModel.DataAnnotations;

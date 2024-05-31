@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace PHC_HighCounsel_Bot.Common.Options;
 
 /// <summary>
