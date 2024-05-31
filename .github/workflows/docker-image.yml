@@ -28,4 +28,4 @@ jobs:
         context: .
         file: ./PHC-HighCounsel-Bot/Dockerfile
         push: true
-        tags: ghcr.io/${{ github.repository_owner }}/your-repo-name:latest
+        tags: ghcr.io/${{ github.repository_owner }}/PHC-HighCounsel-Bot:latest
