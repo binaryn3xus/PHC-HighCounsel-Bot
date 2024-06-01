@@ -3,7 +3,6 @@ name: Docker Build
 on:
   release:
     types: [ published ]
-    name: '^v.*'
   workflow_dispatch:
 
 env:
