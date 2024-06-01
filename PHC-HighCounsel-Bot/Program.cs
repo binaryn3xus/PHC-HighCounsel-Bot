@@ -8,6 +8,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var configuration = new ConfigurationBuilder()
+    .AddEnvironmentVariables()
     .AddUserSecrets<Program>()
     .Build();
 
