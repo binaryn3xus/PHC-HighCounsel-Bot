@@ -1,7 +1,4 @@
-﻿using Discord;
-using Microsoft.Extensions.Options;
-
-namespace PHC_HighCounsel_Bot.Modules;
+﻿namespace PHC_HighCounsel_Bot.Modules;
 
 public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollamaApiClient) : ModuleBase
 {
@@ -26,14 +23,12 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
             .WithDescription(description)
             .AddField("Servers", Context.Client.Guilds.Count, true)
             .AddField("Latency", Context.Client.Latency + "ms", true)
-            .AddField("Version", Assembly.GetEntryAssembly().GetName().Version, true)
             .WithAuthor(app.Owner.Username, app.Owner.GetDisplayAvatarUrl())
-            .WithFooter(string.Join(" · ", app.Tags.Select(t => '#' + t)))
             .WithColor(Colors.Primary)
             .Build();
         
         var components = new ComponentBuilder()
-            .WithLink("Support", Emotes.Logos.Discord, Links.SupportServerUrl)
+            //.WithLink("Support", Emotes.Logos.Discord, Links.SupportServerUrl)
             .WithLink("Source", Emotes.Logos.Github, Links.SourceRepositoryUrl)
             .Build();
 

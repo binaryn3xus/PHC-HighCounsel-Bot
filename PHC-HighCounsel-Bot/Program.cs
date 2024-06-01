@@ -8,7 +8,7 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var configuration = new ConfigurationBuilder()
-    .AddEnvironmentVariables()
+    .AddEnvironmentVariables(prefix: "PHC_")
     .AddUserSecrets<Program>()
     .Build();
 
@@ -37,8 +37,7 @@ builder.Services.AddDiscordHost((config, _) =>
         AlwaysDownloadUsers = false,    
     };
 
-    //config.Token = builder.Configuration.GetSection(DiscordOptions.Discord).Get<DiscordOptions>().Token;
-    config.Token = discordToken;
+    config.Token = discordToken!;
 });
 
 builder.Services.AddInteractionService((config, _) =>
@@ -55,11 +54,7 @@ builder.Services.AddInteractiveService(config =>
 });
 
 builder.Services.AddHostedService<InteractionHandler>();
-
 builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
-//builder.Services.AddSingleton<CommandHandler>();
-//builder.Services.AddSingleton<MessageHandler>();
-//builder.Services.AddHostedService<DiscordBotService>();
 builder.Services.AddSingleton(provider => new DiscordSocketClient(new DiscordSocketConfig() { MessageCacheSize = 200, GatewayIntents = GatewayIntents.All }));
 
 var host = builder.Build();
