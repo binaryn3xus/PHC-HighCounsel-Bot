@@ -1,8 +1,9 @@
 name: Docker Build
 
 on:
-  push:
-    branches: [ main ]
+  release:
+    types: [ published ]
+    name: '^v.*'
   workflow_dispatch:
 
 env:
