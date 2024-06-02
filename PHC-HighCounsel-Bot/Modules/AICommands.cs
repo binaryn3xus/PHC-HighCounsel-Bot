@@ -11,7 +11,7 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
             return;
         }
 
-        var rules = GetRules();
+        var rules = GetRules(Context);
         await DeferAsync();
         logger.LogInformation("Prompt: {prompt}{rules}", prompt, rules);
 
@@ -20,10 +20,10 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
         await ollamaApiClient.StreamCompletion(prompt + rules, null!, stream => aiResponse.Append(stream.Response));
         stopwatch.Stop();
         var discordResponse = new StringBuilder();
-        discordResponse.AppendFormat("**Prompt: {0}**", prompt.Trim()).AppendLine().Append(aiResponse.ToString().Trim());
+        discordResponse.AppendLine(aiResponse.ToString().Trim());
 
         var limitedResponse = (discordResponse.Length > 2000) ? discordResponse.ToString().Substring(0, 1999 - prompt.Length) : discordResponse.ToString();
-        //await ModifyOriginalResponseAsync(o => o.Content = limitedResponse);
+        logger.LogInformation("Response: {response}", limitedResponse);
 
         var d = ollamaApiClient.SelectedModel;
         var embed = new EmbedBuilder()
@@ -39,25 +39,16 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
         await FollowupAsync(embed: embed);
     }
 
-    [SlashCommand("phcai-list", "Ask the PHC AI Anything!", false, RunMode.Async)]
-    public async Task AIListModels()
+    private string GetRules(SocketInteractionContext context)
     {
-        var response = new StringBuilder();
-        await DeferAsync();
-        var models = await ollamaApiClient.ListLocalModels();
-        await ModifyOriginalResponseAsync(o => o.Content = string.Join(',', models.Select(o => o.Name)));
-    }
-
-    private string GetRules()
-    {
+        var author = (Context.User as SocketGuildUser);
         var sb = new StringBuilder();
-
         sb.AppendLine(); //Just to separate it from the question
         sb.AppendLine("Here are some rules for your answer:");
-        sb.AppendLine("Rule 1: Please keep answers short, accurate, and to-the-point.");
-        sb.AppendLine("Rule 2: Must respond with no more than 1500 characters!");
-        sb.AppendLine("Rule 3: Be factual but do not be overly serious unless previously stated");
-        sb.AppendLine("Rule 4: You are allowed to use Markdown and Discord Emojis (1 or 2 max per reply)");
+        sb.AppendLine("- Must respond with no more than 1500 characters!");
+        sb.AppendLine("- Please keep answers short, accurate, and to-the-point.");
+        sb.AppendLine("- Be factual but do not be overly serious unless previously stated");
+        sb.AppendLine("- You are allowed to use Markdown and Discord Emojis (1 or 2 max per reply)");
 
         return sb.ToString();
     }

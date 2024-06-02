@@ -31,7 +31,7 @@ builder.Services.AddDiscordHost((config, _) =>
     config.SocketConfig = new DiscordSocketConfig
     {
         LogLevel = LogSeverity.Info,
-        GatewayIntents = GatewayIntents.AllUnprivileged,
+        GatewayIntents = GatewayIntents.All | GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences,
         LogGatewayIntentWarnings = false,
         UseInteractionSnowflakeDate = false,
         AlwaysDownloadUsers = false,    

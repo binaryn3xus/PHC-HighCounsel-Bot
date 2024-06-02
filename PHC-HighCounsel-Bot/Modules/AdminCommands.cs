@@ -11,11 +11,11 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
         var app = await Context.Client.GetApplicationInfoAsync();
 
         var localModels = await ollamaApiClient.ListLocalModels();
-        var models = string.Join(", ", localModels.Select(m => m.Name));
+        var models = string.Join(",\n", localModels.Select(m => m.Name));
 
         var description = new StringBuilder()
             .AppendLine(app.Description).AppendLine()
-            .AppendLine("AI Models: " + models)
+            .AppendLine("**AI Models**: \n" + models)
             .ToString();
 
         var embed = new EmbedBuilder()
