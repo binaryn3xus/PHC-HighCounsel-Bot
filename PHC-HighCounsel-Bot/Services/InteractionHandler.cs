@@ -1,7 +1,4 @@
-using Microsoft.Extensions.Options;
-using PHC_HighCounsel_Bot.Extensions.Snowflake;
-
-namespace PHC_HighCounsel_Bot.Services;
+﻿namespace PHC_HighCounsel_Bot.Services;
 
 internal sealed class InteractionHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, IServiceProvider provider, InteractionService service, IHostEnvironment environment, IOptions<DiscordOptions> options) : DiscordClientService(client, logger)
 {

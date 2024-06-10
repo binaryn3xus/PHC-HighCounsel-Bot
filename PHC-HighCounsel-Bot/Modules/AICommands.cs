@@ -25,7 +25,6 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
         var limitedResponse = (discordResponse.Length > 2000) ? discordResponse.ToString().Substring(0, 1999 - prompt.Length) : discordResponse.ToString();
         logger.LogInformation("Response: {response}", limitedResponse);
 
-        var d = ollamaApiClient.SelectedModel;
         var embed = new EmbedBuilder()
             .WithTitle(prompt.Trim())
             .WithDescription(limitedResponse)

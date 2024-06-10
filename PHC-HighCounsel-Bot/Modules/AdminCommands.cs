@@ -26,10 +26,10 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
             .WithAuthor(app.Owner.Username, app.Owner.GetDisplayAvatarUrl())
             .WithColor(Colors.Primary)
             .Build();
-        
+
         var components = new ComponentBuilder()
             //.WithLink("Support", Emotes.Logos.Discord, Links.SupportServerUrl)
-            .WithLink("Source", Emotes.Logos.Github, Links.SourceRepositoryUrl)
+            .WithLink("Source", Emotes.Standard.Github, Links.SourceRepositoryUrl)
             .Build();
 
         await FollowupAsync(embed: embed, components: components);

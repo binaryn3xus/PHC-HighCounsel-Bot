@@ -1,38 +1,25 @@
 ﻿namespace PHC_HighCounsel_Bot.Modules;
 
-public class GamingCommands(ILogger<AICommands> logger) : ModuleBase
+public class GamingCommands(ILogger<AICommands> logger, IConfiguration configuration) : ModuleBase
 {
-    //[SlashCommand("phc-flare", "Send up a flare!", false, RunMode.Async)]
-    //public async Task GamingFlare()
-    //{
-    //    await DeferAsync();
+    [SlashCommand("flare", "Send up a PHC flare!", false, RunMode.Async)]
+    public async Task GamingFlare()
+    {
+        await DeferAsync();
 
-    //    var response = new StringBuilder();
-    //    response.Append("Anyone gaming?");
+        // Get the role you want to check
+        var roleId = configuration.GetValue<ulong>("PHC:MemberRoleId");
+        var role = Context.Guild.Roles.FirstOrDefault(r => r.Id == roleId);
+        logger.LogTrace(role != null ? $"Sending Flare to Role: {role.Name} (${role.Id})" : "Could not find a role for '${roleId}'", role?.Name, roleId);
 
-    //    // Get the role you want to check
+        var response = new StringBuilder();
+        response.AppendFormat("{0}Anyone gaming?", (role != null) ? $"<@&{role.Id}>" : string.Empty);
+        var embed = new EmbedBuilder()
+            .WithTitle("Sending up flare!")
+            .WithDescription(response.ToString())
+            .WithAuthor(Context.User.Username, Context.User.GetDisplayAvatarUrl())
+            .WithColor(Colors.Primary);
 
-    //    var role = Context.Guild.Roles.FirstOrDefault(r => r.Name == "Admins");
-
-    //    // Get all the users in the role
-    //    var usersInRole = role.Members.Cast<SocketGuildUser>();
-
-    //    // Loop through each user and get their status
-    //    foreach (var user in usersInRole)
-    //    {
-    //        var status = user.Status;
-    //        var activity = user.Activities.FirstOrDefault();
-    //        // Do something with the user's status
-    //        // For example, you can print it to the console
-    //        response.AppendLine($"{user.Username} - {status} - {activity}");
-    //    }
-
-    //    var embed = new EmbedBuilder()
-    //        .WithTitle("Sending up a flare!")
-    //        .WithDescription(response.ToString())
-    //        .WithAuthor(Context.User.Username, Context.User.GetDisplayAvatarUrl())
-    //        .WithColor(Colors.Primary);
-
-    //    await FollowupAsync(embed: embed.Build());
-    //}
+        await FollowupAsync(embed: embed.Build());
+    }
 }

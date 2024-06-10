@@ -1,5 +1,4 @@
 ﻿
-
 Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -31,10 +30,11 @@ builder.Services.AddDiscordHost((config, _) =>
     config.SocketConfig = new DiscordSocketConfig
     {
         LogLevel = LogSeverity.Info,
-        GatewayIntents = GatewayIntents.All | GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences,
-        LogGatewayIntentWarnings = false,
+        //GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildPresences,
+        GatewayIntents = GatewayIntents.All,
+        LogGatewayIntentWarnings = true,
         UseInteractionSnowflakeDate = false,
-        AlwaysDownloadUsers = false,    
+        AlwaysDownloadUsers = false,
     };
 
     config.Token = discordToken!;
@@ -54,8 +54,7 @@ builder.Services.AddInteractiveService(config =>
 });
 
 builder.Services.AddHostedService<InteractionHandler>();
-builder.Services.AddSingleton(x => new InteractionService(x.GetRequiredService<DiscordSocketClient>()));
-builder.Services.AddSingleton(provider => new DiscordSocketClient(new DiscordSocketConfig() { MessageCacheSize = 200, GatewayIntents = GatewayIntents.All }));
+builder.Services.AddHostedService<MessageHandler>();
 
 var host = builder.Build();
 

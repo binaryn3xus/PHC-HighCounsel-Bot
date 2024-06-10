@@ -1,4 +1,4 @@
-namespace PHC_HighCounsel_Bot.Extensions.Builders;
+namespace PHC_HighCounsel_Bot.Extensions;
 
 /// <summary>
 /// Provides extension methods for <see cref="ComponentBuilder"/>.
