@@ -7,7 +7,8 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var configuration = new ConfigurationBuilder()
-    .AddEnvironmentVariables(prefix: "PHC_")
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables(prefix: "Bot_")
     .AddUserSecrets<Program>()
     .Build();
 

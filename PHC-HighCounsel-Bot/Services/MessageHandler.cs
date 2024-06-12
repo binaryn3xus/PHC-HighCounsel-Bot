@@ -1,6 +1,6 @@
 ﻿namespace PHC_HighCounsel_Bot.Services;
 
-internal sealed class MessageHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, IOptions<DiscordOptions> options) : DiscordClientService(client, logger)
+internal sealed class MessageHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, IOptions<DiscordOptions> options, IConfiguration configuration) : DiscordClientService(client, logger)
 {
     private readonly ulong _devGuildId = options.Value.DevGuildId;
     private readonly Dictionary<Emote, List<string>> emoteMap = Emotes.GetEmoteDictionary();
@@ -17,6 +17,14 @@ internal sealed class MessageHandler(DiscordSocketClient client, ILogger<Interac
         if (arg is not SocketUserMessage message || message.Author.IsBot || message.Content.StartsWith('!'))
             return;
 
+        // Auto reactions based on the words in the message
+        bool enableAutoReactions = configuration.GetValue<bool>("PHC:AutoReactions");
+        if(enableAutoReactions)
+            await AutoReaction(message); 
+    }
+
+    private async Task AutoReaction(SocketUserMessage message)
+    {
         // Check if the message contains any of the words/phrases in the emoteMap (value) and react with the corresponding emote (key)
         foreach (var (emote, words) in emoteMap)
         {
