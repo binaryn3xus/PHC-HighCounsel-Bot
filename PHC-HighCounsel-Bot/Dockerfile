@@ -1,23 +1,22 @@
-#See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
+WORKDIR /App
 
-FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
-USER app
-WORKDIR /app
+COPY . ./
+RUN dotnet restore
+RUN dotnet publish "./PHC-HighCounsel-Bot/PHC-HighCounsel-Bot.csproj" -c Release -o out
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["PHC-HighCounsel-Bot/PHC-HighCounsel-Bot.csproj", "PHC-HighCounsel-Bot/"]
-RUN dotnet restore "./PHC-HighCounsel-Bot/PHC-HighCounsel-Bot.csproj"
-COPY . .
-WORKDIR "/src/PHC-HighCounsel-Bot"
-RUN dotnet build "./PHC-HighCounsel-Bot.csproj" -c $BUILD_CONFIGURATION -o /app/build
+# Build runtime image
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS runtime
+WORKDIR /App
+COPY --from=build-env /App/out .
 
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./PHC-HighCounsel-Bot.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Install ffmpeg
+RUN apt-get update \
+    && apt-get install -y ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
 
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
+# Copy ffmpeg to /App
+RUN cp /usr/bin/ffmpeg /App/ffmpeg \
+    && chmod +x /App/ffmpeg
+
 ENTRYPOINT ["dotnet", "PHC-HighCounsel-Bot.dll"]

@@ -6,7 +6,7 @@
     "Container (Dockerfile)": {
       "commandName": "Docker",
       "environmentVariables": {
-        //Add the key-value pairs here
+        "DOTNET_ENVIRONMENT": "Development"
       }
     }
   }

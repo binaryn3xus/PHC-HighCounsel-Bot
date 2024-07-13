@@ -2,7 +2,7 @@
 
 internal sealed class InteractionHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, IServiceProvider provider, InteractionService service, IHostEnvironment environment, IOptions<DiscordOptions> options) : DiscordClientService(client, logger)
 {
-    private readonly ulong _devGuildId = options.Value.DevGuildId;
+    private readonly ulong _devGuildId = options.Value.GuildId; 
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -30,7 +30,14 @@ internal sealed class InteractionHandler(DiscordSocketClient client, ILogger<Int
     private async Task RegisterCommandsLocallyAsync()
     {
         await Client.Rest.DeleteAllGlobalCommandsAsync();
-        await service.RegisterCommandsToGuildAsync(_devGuildId);
+        if (_devGuildId != 0)
+        {
+            await service.RegisterCommandsToGuildAsync(_devGuildId);
+        }
+        else
+        {
+            Logger.LogError("No development guild ID provided. Commands will not be registered locally.");
+        }
     }
 
     private async Task RegisterCommandsGloballyAsync()

@@ -2,7 +2,11 @@
 
 public class GamingCommands(ILogger<AICommands> logger, IConfiguration configuration) : ModuleBase
 {
+#if DEBUG
+    [SlashCommand("dev-flare", "Ask the PHC AI Anything!", false, RunMode.Async)]
+#else
     [SlashCommand("flare", "Send up a PHC flare!", false, RunMode.Async)]
+#endif
     public async Task GamingFlare()
     {
         await DeferAsync();

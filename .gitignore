@@ -9,6 +9,7 @@
 
 # Project specific
 .env
+.private
 
 # User-specific files
 *.rsuser

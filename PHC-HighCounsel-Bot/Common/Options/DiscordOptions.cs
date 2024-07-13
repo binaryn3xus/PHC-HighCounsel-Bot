@@ -18,5 +18,5 @@ public class DiscordOptions
     /// <summary>
     /// The ID of a server in the Discord used for development of this application.
     /// </summary>
-    public ulong DevGuildId { get; init; }
+    public ulong GuildId { get; init; }
 }

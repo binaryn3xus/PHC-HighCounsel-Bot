@@ -1,8 +1,7 @@
 ﻿namespace PHC_HighCounsel_Bot.Services;
 
-internal sealed class MessageHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, IOptions<DiscordOptions> options, IConfiguration configuration) : DiscordClientService(client, logger)
+internal sealed class MessageHandler(DiscordSocketClient client, ILogger<InteractionHandler> logger, IConfiguration configuration) : DiscordClientService(client, logger)
 {
-    private readonly ulong _devGuildId = options.Value.DevGuildId;
     private readonly Dictionary<Emote, List<string>> emoteMap = Emotes.GetEmoteDictionary();
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)

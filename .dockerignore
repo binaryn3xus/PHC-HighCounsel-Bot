@@ -1,4 +1,13 @@
 **/.classpath
+# Exclude files and directories from Docker image build
+
+# Exclude specific files
+file.txt
+secret.key
+
+# Exclude directories
+logs/
+temp/
 **/.dockerignore
 **/.env
 **/.git

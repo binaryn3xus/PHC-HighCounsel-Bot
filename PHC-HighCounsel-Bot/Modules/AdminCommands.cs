@@ -4,7 +4,11 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
 {
     protected LinksOptions Links => options.Value;
 
-    [SlashCommand("about", "Shows information about the app.")]
+#if DEBUG
+    [SlashCommand("dev-about", "Shows information about the app.", false, RunMode.Async)]
+#else
+    [SlashCommand("about", "Shows information about the app.", false, RunMode.Async)]
+#endif
     public async Task AboutAsync()
     {
         await DeferAsync();

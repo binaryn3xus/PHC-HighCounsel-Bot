@@ -2,7 +2,11 @@
 
 public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> logger) : ModuleBase
 {
+#if DEBUG
+    [SlashCommand("dev-phcai", "Ask the PHC AI Anything!", false, RunMode.Async)]
+#else
     [SlashCommand("phcai", "Ask the PHC AI Anything!", false, RunMode.Async)]
+#endif
     public async Task AIPromptRequestAsync(string prompt)
     {
         if (prompt == null)
