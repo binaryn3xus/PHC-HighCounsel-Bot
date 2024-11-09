@@ -19,5 +19,20 @@ public class PlexOptions
     /// The token to authenticate with the Plex server.
     /// </summary>
     public required string Token { get; init; }
+
+    /// <summary>
+    /// LavaLink server for the Plex server.
+    /// </summary>
+    public required string LavaLinkServer { get; init; }
+
+    /// <summary>
+    /// LavaLink port for the Plex server.
+    /// </summary>
+    public required string LavaLinkPort { get; init; }
+
+    /// <summary>
+    /// LavaLink authorization for the Plex server.
+    /// </summary>
+    public required string LavaLinkAuthorization { get; init; }
 }
 

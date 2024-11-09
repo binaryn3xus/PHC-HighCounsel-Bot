@@ -1,4 +1,7 @@
-﻿Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+﻿using Lavalink4NET;
+using Lavalink4NET.Extensions;
+
+Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("PHC_HighCounsel_Bot", LogEventLevel.Verbose)
@@ -26,10 +29,27 @@ var ollamaServer = configuration["Ollama:Server"];
 var ollamaModel = configuration["Ollama:Model"];
 var plexServer = configuration["Plex:Server"];
 var plexToken = configuration["Plex:Token"];
+var lavaLinkServer = configuration["Plex:LavaLinkServer"];
+var lavaLinkPort = configuration["Plex:LavaLinkPort"];
+var lavaLinkAuthorization = configuration["Plex:LavaLinkAuthorization"];
+
+//builder.Services.AddLavaNode(config =>
+//{
+//    config.Hostname = lavaLinkServer;
+//    config.Port = int.Parse(lavaLinkPort);
+//    config.Authorization = lavaLinkAuthorization;
+//    config.IsSecure = true;
+//});
+builder.Services.ConfigureLavalink(config =>
+{
+    config.BaseAddress = new Uri(lavaLinkServer);
+    config.Passphrase = lavaLinkAuthorization;
+    config.ResumptionOptions = new LavalinkSessionResumptionOptions(TimeSpan.FromSeconds(60));
+});
+builder.Services.AddLavalink();
 
 builder.Services.AddSingleton(new OllamaApiClient(new Uri(ollamaServer)) { SelectedModel = ollamaModel });
 builder.Services.AddSingleton<PlexClient>();
-builder.Services.AddSingleton<AudioStreamer>();
 
 builder.Services.AddDiscordHost((config, _) =>
 {

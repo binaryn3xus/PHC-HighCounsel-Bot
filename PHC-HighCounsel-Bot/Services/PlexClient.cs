@@ -72,6 +72,34 @@ public class PlexClient
         return trackIds;
     }
 
+    public async Task<string> DownloadAndSaveAsMp3Async(string streamUrl)
+    {
+        try
+        {
+            var tempPath = Path.Combine(Path.GetTempPath(), $"{Guid.NewGuid()}.mp3");
+
+            using (var stream = await _httpClient.GetStreamAsync(streamUrl))
+            using (var fileStream = new FileStream(tempPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                byte[] buffer = new byte[81920];
+                int bytesRead;
+
+                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                {
+                    await fileStream.WriteAsync(buffer, 0, bytesRead);
+                }
+            }
+
+            return tempPath;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading and saving the stream: {ex.Message}");
+            throw;
+        }
+    }
+
+
     private List<string> ExtractArtistIds(string content)
     {
         var artistIds = new List<string>();
