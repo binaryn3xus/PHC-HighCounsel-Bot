@@ -5,64 +5,85 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
     [SlashCommand("phcai", "Ask the PHC AI Anything!", false, RunMode.Async)]
     public async Task AIPromptRequestAsync(string prompt)
     {
-        if (prompt == null)
+        if (string.IsNullOrWhiteSpace(prompt))
         {
             await RespondAsync("You need to provide a prompt!");
             return;
         }
 
-        var rules = GetRules(Context);
-        await DeferAsync();
-        logger.LogInformation("Prompt: {prompt}{rules}", prompt, rules);
+        try
+        {
+            var rules = GetRules(Context);
+            await DeferAsync();
 
+            logger.LogInformation("Prompt: {prompt}{rules}", prompt, rules);
+
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+            var aiResponse = await GetAIResponseAsync(prompt + rules);
+            stopwatch.Stop();
+
+            var limitedResponse = LimitResponseLength(aiResponse, prompt.Length);
+
+            logger.LogInformation("Response: {response}", limitedResponse);
+
+            var embed = BuildEmbed(prompt, limitedResponse, stopwatch.ElapsedMilliseconds);
+            await FollowupAsync(embed: embed);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occurred while processing the AI prompt.");
+            await FollowupAsync("An error occurred while processing your request. Please try again later.");
+        }
+    }
+
+    private async Task<string> GetAIResponseAsync(string fullPrompt)
+    {
         var aiResponse = new StringBuilder();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        await ollamaApiClient.StreamCompletion(prompt + rules, null!, stream => aiResponse.Append(stream.Response));
+
+        await ollamaApiClient.StreamCompletion(fullPrompt, null!, stream => aiResponse.Append(stream.Response));
+
         stopwatch.Stop();
-        var discordResponse = new StringBuilder();
-        discordResponse.AppendLine(aiResponse.ToString().Trim());
+        return aiResponse.ToString().Trim();
+    }
 
-        var limitedResponse = (discordResponse.Length > 2000) ? discordResponse.ToString().Substring(0, 1999 - prompt.Length) : discordResponse.ToString();
-        logger.LogInformation("Response: {response}", limitedResponse);
+    private string LimitResponseLength(string response, int promptLength)
+    {
+        const int maxDiscordMessageLength = 2000;
+        int maxResponseLength = maxDiscordMessageLength - promptLength;
 
-        var embed = new EmbedBuilder()
+        return response.Length > maxResponseLength
+            ? response.Substring(0, maxResponseLength - 1)
+            : response;
+    }
+
+    private Embed BuildEmbed(string prompt, string response, long elapsedMilliseconds)
+    {
+        return new EmbedBuilder()
             .WithTitle(prompt.Trim())
-            .WithDescription(limitedResponse)
+            .WithDescription(response)
             .AddField("Model", ollamaApiClient.SelectedModel, true)
-            .AddField("Latency", ConvertToReadableTime(stopwatch.ElapsedMilliseconds), true)
+            .AddField("Latency", ConvertToReadableTime(elapsedMilliseconds), true)
             .WithAuthor(Context.User.Username, Context.User.GetDisplayAvatarUrl())
-            //.WithFooter(string.Join(" · ", app.Tags.Select(t => '#' + t)))
             .WithColor(Colors.Primary)
             .Build();
-
-        await FollowupAsync(embed: embed);
     }
 
     private string GetRules(SocketInteractionContext context)
     {
-        var author = (Context.User as SocketGuildUser);
-        var sb = new StringBuilder();
-        sb.AppendLine(); //Just to separate it from the question
-        sb.AppendLine("Here are some rules for your answer:");
-        sb.AppendLine("- Must respond with no more than 1500 characters!");
-        sb.AppendLine("- Please keep answers short, accurate, and to-the-point.");
-        sb.AppendLine("- Be factual but do not be overly serious unless previously stated");
-        sb.AppendLine("- You are allowed to use Markdown and Discord Emojis (1 or 2 max per reply)");
+        var sb = new StringBuilder()
+            .AppendLine() // Separate from the question
+            .AppendLine("Here are some rules for your answer:")
+            .AppendLine("- Must respond with no more than 1500 characters!")
+            .AppendLine("- Please keep answers short, accurate, and to the point.")
+            .AppendLine("- Be factual but do not be overly serious unless previously stated.")
+            .AppendLine("- You are allowed to use Markdown and Discord Emojis (1 or 2 max per reply)");
 
         return sb.ToString();
     }
 
     private string ConvertToReadableTime(long milliseconds)
     {
-        if (milliseconds >= 1000)
-        {
-            double seconds = milliseconds / 1000.0;
-            return $"{seconds}s";
-        }
-        else
-        {
-            return $"{milliseconds}ms";
-        }
+        return milliseconds >= 1000 ? $"{milliseconds / 1000.0}s" : $"{milliseconds}ms";
     }
 }
-

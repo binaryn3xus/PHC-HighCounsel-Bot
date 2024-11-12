@@ -7,7 +7,8 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
     [SlashCommand("about", "Shows information about the app.")]
     public async Task AboutAsync()
     {
-        await DeferAsync();
+        await DeferAsync(ephemeral: true);
+
         var app = await Context.Client.GetApplicationInfoAsync();
 
         var localModels = await ollamaApiClient.ListLocalModels();
@@ -32,6 +33,6 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
             .WithLink("Source", Emotes.Standard.Github, Links.SourceRepositoryUrl)
             .Build();
 
-        await FollowupAsync(embed: embed, components: components);
+        await FollowupAsync(embed: embed, components: components, ephemeral: true);
     }
 }

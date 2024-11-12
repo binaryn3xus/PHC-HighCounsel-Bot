@@ -1,52 +1,62 @@
 ﻿namespace PHC_HighCounsel_Bot.Modules;
 
-public class GamingCommands(ILogger<AICommands> logger, IConfiguration configuration) : ModuleBase
+public class GamingCommands(ILogger<GamingCommands> logger, IConfiguration configuration) : ModuleBase
 {
+    private List<string>? _flarePhrases;
+
     [SlashCommand("flare", "Send up a PHC flare!", false, RunMode.Async)]
     public async Task GamingFlare()
     {
         await DeferAsync();
 
-        // Get the role you want to check
+        // Retrieve the role ID from configuration
         var roleIdString = configuration.GetValue<string>("PHC:MemberRoleId");
         if (!ulong.TryParse(roleIdString, out ulong roleId))
         {
-            logger.LogError($"Failed to convert configuration value 'PHC:MemberRoleId' to type 'System.UInt64'");
+            logger.LogError("Failed to convert configuration value 'PHC:MemberRoleId' to type 'ulong'.");
+            await FollowupAsync("Configuration error: Member role ID is invalid.", ephemeral: true);
             return;
         }
 
         var role = Context.Guild.Roles.FirstOrDefault(r => r.Id == roleId);
-        logger.LogTrace(role != null ? $"Sending Flare to Role: {role.Name} (${role.Id})" : $"Could not find a role for '{roleId}'", role?.Name, roleId);
+        if (role == null)
+        {
+            logger.LogWarning("Role with ID {RoleId} not found in guild {GuildId}.", roleId, Context.Guild.Id);
+            await FollowupAsync("Role not found in this server. Please check the configuration.", ephemeral: true);
+            return;
+        }
 
-        var response = new StringBuilder();
-        response.AppendFormat("{0}{1}", (role != null) ? $"<@&{role.Id}> " : string.Empty, GetRandomFlarePhrase());
+        logger.LogInformation("Sending Flare to Role: {RoleName} ({RoleId})", role.Name, role.Id);
+
+        var response = new StringBuilder()
+            .Append($"<@&{role.Id}> ")
+            .Append(GetRandomFlarePhrase());
+
         var embed = new EmbedBuilder()
-            .WithTitle("Sending up flare!")
+            .WithTitle("Sending up a flare!")
             .WithDescription(response.ToString())
             .WithAuthor(Context.User.Username, Context.User.GetDisplayAvatarUrl())
-            .WithColor(Colors.Primary);
+            .WithColor(Colors.Primary)
+            .Build();
 
-        await FollowupAsync(embed: embed.Build());
+        await FollowupAsync(embed: embed);
     }
 
     private string GetRandomFlarePhrase()
     {
-        var flarePhrases = new List<string>
+        // Lazy-load flare phrases on first access
+        if (_flarePhrases == null)
         {
-            "Where are the bois at?",
-            "Any bois ready to game?",
-            "Bois, assemble! Where you at?",
-            "Calling all bois! Game time, where you hiding?",
-            "Looking for the bois! Who's in?",
-            "Attention bois: Game session starting, location check?",
-            "Alright bois, roll call! Where's everyone?",
-            "Bois, report your gaming stations!",
-            "Gather 'round bois, it's game o'clock! Where are you?",
-            "Bois, sound off! Who's up for some gaming action?"
-        };
+            _flarePhrases = configuration.GetSection("FlarePhrases").Get<List<string>>() ?? new List<string>();
+
+            if (_flarePhrases.Count == 0)
+            {
+                _flarePhrases.Add("Anyone trying to game?");
+                logger.LogWarning("FlarePhrases section is empty or missing. Using default message.");
+            }
+        }
 
         var random = new Random();
-        var randomIndex = random.Next(0, flarePhrases.Count);
-        return flarePhrases[randomIndex];
+        return _flarePhrases[random.Next(_flarePhrases.Count)];
     }
 }
