@@ -41,7 +41,8 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
         var aiResponse = new StringBuilder();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        await ollamaApiClient.StreamCompletion(fullPrompt, null!, stream => aiResponse.Append(stream.Response));
+        await foreach (var stream in ollamaApiClient.GenerateAsync(fullPrompt))
+            aiResponse.Append(stream?.Response);
 
         stopwatch.Stop();
         return aiResponse.ToString().Trim();

@@ -62,7 +62,8 @@ var host = builder.Build();
 if (!string.IsNullOrWhiteSpace(ollamaModel))
 {
     var ollama = host.Services.GetRequiredService<OllamaApiClient>();
-    await ollama.PullModel(ollamaModel, status => Console.WriteLine($"({status.Percent}%) {status.Status}"));
+    await foreach (var status in ollama.PullModelAsync(ollamaModel))
+        Console.WriteLine($"{status?.Percent}% {status?.Status}");
 }
 
 await host.RunAsync();
