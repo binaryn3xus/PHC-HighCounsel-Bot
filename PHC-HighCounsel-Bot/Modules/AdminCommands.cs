@@ -11,7 +11,7 @@ public class AdminCommands(IOptions<LinksOptions> options, OllamaApiClient ollam
 
         var app = await Context.Client.GetApplicationInfoAsync();
 
-        var localModels = await ollamaApiClient.ListLocalModels();
+        var localModels = await ollamaApiClient.ListLocalModelsAsync();
         var models = string.Join(",\n", localModels.Select(m => m.Name));
 
         var description = new StringBuilder()
