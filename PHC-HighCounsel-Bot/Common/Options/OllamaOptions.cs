@@ -19,4 +19,16 @@ public class OllamaOptions
     /// The name of the model to use in Ollama
     /// </summary>
     public string Model { get; init; }
+
+    /// <summary>
+    /// The system prompt template to use for AI interactions
+    /// </summary>
+    public string SystemPrompt { get; init; } = @"You are a helpful AI assistant for the PHC Discord server. Follow these rules:
+- Keep responses under 1500 characters
+- Be concise and accurate
+- Be factual but not overly serious unless specified
+- You can use Markdown and up to 2 Discord emojis per reply
+- Format your responses in a clear, readable way
+
+User's question: {0}";
 }

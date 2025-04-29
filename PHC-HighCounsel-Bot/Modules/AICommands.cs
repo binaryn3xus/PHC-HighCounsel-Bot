@@ -1,7 +1,14 @@
-﻿namespace PHC_HighCounsel_Bot.Modules;
+﻿using OllamaSharp.Models;
 
-public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> logger) : ModuleBase
+namespace PHC_HighCounsel_Bot.Modules;
+
+public class AICommands(
+    OllamaApiClient ollamaApiClient,
+    ILogger<AICommands> logger,
+    IOptions<OllamaOptions> ollamaOptions) : ModuleBase
 {
+    private OllamaOptions OllamaConfig => ollamaOptions.Value;
+
     [SlashCommand("phcai", "Ask the PHC AI Anything!", false, RunMode.Async)]
     public async Task AIPromptRequestAsync(string prompt)
     {
@@ -13,16 +20,16 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
 
         try
         {
-            var rules = GetRules(Context);
             await DeferAsync();
 
-            logger.LogInformation("Prompt: {prompt}{rules}", prompt, rules);
+            var formattedPrompt = FormatPrompt(prompt);
+            logger.LogInformation("Prompt: {prompt}", formattedPrompt);
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var aiResponse = await GetAIResponseAsync(prompt + rules);
+            var aiResponse = await GetAIResponseAsync(formattedPrompt);
             stopwatch.Stop();
 
-            var limitedResponse = LimitResponseLength(aiResponse, prompt.Length);
+            var limitedResponse = aiResponse.ToString().Length > 2000 ? aiResponse.ToString()[..2000] : aiResponse.ToString();
 
             logger.LogInformation("Response: {response}", limitedResponse);
 
@@ -36,26 +43,50 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
         }
     }
 
+    private string FormatPrompt(string userPrompt)
+    {
+        return string.Format(OllamaConfig.SystemPrompt, userPrompt);
+    }
+
     private async Task<string> GetAIResponseAsync(string fullPrompt)
     {
         var aiResponse = new StringBuilder();
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
-        await foreach (var stream in ollamaApiClient.GenerateAsync(fullPrompt))
-            aiResponse.Append(stream?.Response);
+        var request = new GenerateRequest
+        {
+            Model = ollamaApiClient.SelectedModel,
+            Prompt = fullPrompt,
+            Stream = true,
+            Options = new OllamaSharp.Models.RequestOptions
+            {
+                Temperature = 0.7f,
+                TopP = 0.9f,
+                TopK = 40,
+                NumPredict = 1000,
+                Stop = ["\n\n", "User:", "Assistant:"],
+                Seed = Random.Shared.Next()
+            }
+        };
+
+        try
+        {
+            await foreach (var stream in ollamaApiClient.GenerateAsync(request))
+            {
+                if (stream?.Response != null)
+                {
+                    aiResponse.Append(stream.Response);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Ollama API error occurred while generating response");
+            throw;
+        }
 
         stopwatch.Stop();
         return aiResponse.ToString().Trim();
-    }
-
-    private string LimitResponseLength(string response, int promptLength)
-    {
-        const int maxDiscordMessageLength = 2000;
-        int maxResponseLength = maxDiscordMessageLength - promptLength;
-
-        return response.Length > maxResponseLength
-            ? response.Substring(0, maxResponseLength - 1)
-            : response;
     }
 
     private Embed BuildEmbed(string prompt, string response, long elapsedMilliseconds)
@@ -68,19 +99,6 @@ public class AICommands(OllamaApiClient ollamaApiClient, ILogger<AICommands> log
             .WithAuthor(Context.User.Username, Context.User.GetDisplayAvatarUrl())
             .WithColor(Colors.Primary)
             .Build();
-    }
-
-    private string GetRules(SocketInteractionContext context)
-    {
-        var sb = new StringBuilder()
-            .AppendLine() // Separate from the question
-            .AppendLine("Here are some rules for your answer:")
-            .AppendLine("- Must respond with no more than 1500 characters!")
-            .AppendLine("- Please keep answers short, accurate, and to the point.")
-            .AppendLine("- Be factual but do not be overly serious unless previously stated.")
-            .AppendLine("- You are allowed to use Markdown and Discord Emojis (1 or 2 max per reply)");
-
-        return sb.ToString();
     }
 
     private string ConvertToReadableTime(long milliseconds)
