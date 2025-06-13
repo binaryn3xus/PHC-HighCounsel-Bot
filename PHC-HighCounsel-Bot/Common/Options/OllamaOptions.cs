@@ -18,7 +18,7 @@ public class OllamaOptions
     /// <summary>
     /// The name of the model to use in Ollama
     /// </summary>
-    public string Model { get; init; }
+    public string? Model { get; init; }
 
     /// <summary>
     /// The system prompt template to use for AI interactions
