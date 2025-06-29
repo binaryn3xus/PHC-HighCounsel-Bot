@@ -19,46 +19,17 @@ internal sealed class MessageHandler(DiscordSocketClient client, ILogger<Interac
         if (arg is not SocketUserMessage message || message.Author.IsBot || message.Content.StartsWith('!'))
             return;
 
-        // Define the domain replacements
-        var domainReplacements = new Dictionary<string, string>
-        {
-            { "twitter.com", "fxtwitter.com" },
-            { "x.com", "fixupx.com" },
-            { "bsky.app", "fxbsky.app" }
-        };
-
+        // Process FX Links (domain replacements)
         bool enableFxLinks = configuration.GetValue<bool>("PHC:EnableFxLinks");
         if (enableFxLinks)
-        {
-            // Check if the message contains a link from the specified websites
-            foreach (var (originalDomain, replacementDomain) in domainReplacements)
-            {
-                if (message.Content.Contains(originalDomain, StringComparison.OrdinalIgnoreCase))
-                {
-                    try
-                    {
-                        // Replace the link(s) in the message while keeping the rest of the content
-                        var modifiedMessage = ModifyLinksInMessage(message.Content, originalDomain, replacementDomain);
+            if (await ProcessFxLinksAsync(message))
+                return; // If a link was processed, skip further processing
 
-                        // Prepend the message with the user's mention
-                        var finalMessage = $"<@{message.Author.Id}> said: {modifiedMessage}";
 
-                        // Delete the original message
-                        await message.DeleteAsync();
-
-                        // Post the modified message
-                        await message.Channel.SendMessageAsync(finalMessage);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError(ex, "Failed to process the message containing a link.");
-                    }
-
-                    // Exit the loop after processing the first matching domain
-                    break;
-                }
-            }
-        }
+        // Suppress Facebook embeds if the message contains a Facebook link
+        bool enableSuppressFacebookEmbed = configuration.GetValue<bool>("PHC:SuppressFacebookEmbed");
+        if (enableSuppressFacebookEmbed)
+            await SuppressFacebookEmbedAsync(message);
 
         // Auto reactions based on the words in the message
         bool enableAutoReactions = configuration.GetValue<bool>("PHC:AutoReactions");
@@ -92,6 +63,63 @@ internal sealed class MessageHandler(DiscordSocketClient client, ILogger<Interac
                 {
                     Logger.LogError(ex, "Failed to add '{EmoteName}' reaction to message.", emote.Name);
                 }
+            }
+        }
+    }
+
+    private async Task<bool> ProcessFxLinksAsync(SocketUserMessage message)
+    {
+        // Define the domain replacements
+        var domainReplacements = new Dictionary<string, string>
+        {
+            { "twitter.com", "fxtwitter.com" },
+            { "x.com", "fixupx.com" },
+            { "bsky.app", "fxbsky.app" }
+        };
+
+        foreach (var (originalDomain, replacementDomain) in domainReplacements)
+        {
+            if (message.Content.Contains(originalDomain, StringComparison.OrdinalIgnoreCase))
+            {
+                try
+                {
+                    // Replace the link(s) in the message while keeping the rest of the content
+                    var modifiedMessage = ModifyLinksInMessage(message.Content, originalDomain, replacementDomain);
+
+                    // Prepend the message with the user's mention
+                    var finalMessage = $"<@{message.Author.Id}> said: {modifiedMessage}";
+
+                    // Delete the original message
+                    await message.DeleteAsync();
+
+                    // Post the modified message
+                    await message.Channel.SendMessageAsync(finalMessage);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Failed to process the message containing a link.");
+                }
+
+                // Return true to indicate a link was processed and further processing should stop
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private async Task SuppressFacebookEmbedAsync(SocketUserMessage message)
+    {
+        if (message.Content.Contains("facebook.com", StringComparison.OrdinalIgnoreCase) ||
+        message.Content.Contains("fb.watch", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                await Task.Delay(2000);
+                await message.ModifyAsync(msg => msg.Flags = MessageFlags.SuppressEmbeds);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "Failed to suppress embed for Facebook link.");
             }
         }
     }
